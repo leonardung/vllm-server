@@ -7,19 +7,20 @@ services:
       ${VLLM_MODEL:-Qwen/Qwen3-4B}
       --port 8100
       --max-model-len 4096
-      --gpu-memory-utilization 0.5
+      --gpu-memory-utilization 1
       --dtype auto
       --api-key ${VLLM_API_KEY:-}
     volumes:
       - hf-cache:/root/.cache/huggingface
     environment:
       - HF_TOKEN=${HF_TOKEN:-}
+      - NVIDIA_VISIBLE_DEVICES=${VLLM_GPU_DEVICES:-0}
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
-              count: 1
+              count: all
               capabilities: [gpu]
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:8100/health || exit 1"]
