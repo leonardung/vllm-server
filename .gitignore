@@ -1,0 +1,26 @@
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Logs and runtime files
+*.log
+logs/
+tmp/
+
+# Editor and OS files
+.idea/
+.vscode/
+.DS_Store
+
+# Local model/cache artifacts
+models/
+hf-cache/
+.cache/

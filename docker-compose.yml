@@ -1,0 +1,40 @@
+services:
+  vllm:
+    image: vllm/vllm-openai:latest
+    restart: unless-stopped
+    ipc: host
+    command: >
+      ${VLLM_MODEL:-Qwen/Qwen3-4B}
+      --port 8100
+      --max-model-len 4096
+      --gpu-memory-utilization 0.5
+      --dtype auto
+      --api-key ${VLLM_API_KEY:-}
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+    environment:
+      - HF_TOKEN=${HF_TOKEN:-}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8100/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      vllm:
+        condition: service_healthy
+
+volumes:
+  hf-cache:
