@@ -1,13 +1,14 @@
 services:
   vllm:
-    image: vllm/vllm-openai:latest
+    image: ${VLLM_IMAGE:-vllm/vllm-openai:latest}
     restart: unless-stopped
     ipc: host
     command: >
-      ${VLLM_MODEL:-Qwen/Qwen3-4B}
+      --model ${VLLM_MODEL:-Qwen/Qwen3-4B}
+      --served-model-name qwen-local
       --port 8100
-      --max-model-len 4096
-      --gpu-memory-utilization 1
+      --max-model-len 16392
+      --gpu-memory-utilization 0.95
       --dtype auto
       --api-key ${VLLM_API_KEY:-}
     volumes:
@@ -15,12 +16,14 @@ services:
     environment:
       - HF_TOKEN=${HF_TOKEN:-}
       - NVIDIA_VISIBLE_DEVICES=${VLLM_GPU_DEVICES:-0}
+      - CUDA_DEVICE_ORDER=PCI_BUS_ID
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
-              count: all
+              device_ids:
+                - ${VLLM_GPU_DEVICES:-0}
               capabilities: [gpu]
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:8100/health || exit 1"]
